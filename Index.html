@@ -1,0 +1,236 @@
+```html
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MÁY TÍNH MŨI NÉ SMART</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { 
+            background-color: #020617; 
+            color: #f1f5f9; 
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+
+        .glass-card {
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .device-card:active {
+            transform: scale(0.97);
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(34, 197, 94, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+        }
+
+        .status-online {
+            background-color: #22c55e;
+            animation: pulse 2s infinite;
+        }
+
+        .status-offline {
+            background-color: #ef4444;
+        }
+
+        .active-glow {
+            box-shadow: 0 0 20px -5px rgba(14, 165, 233, 0.5);
+            border-color: rgba(14, 165, 233, 0.4) !important;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center p-5">
+
+    <!-- Header Section -->
+    <header class="w-full max-w-md mt-4 mb-6 text-center">
+        <h1 class="text-[10px] font-bold tracking-[0.4em] text-slate-500 uppercase mb-1">Dự Án Điều Khiển Từ Xa</h1>
+        <h2 class="text-2xl font-black text-white italic">MÁY TÍNH MŨI NÉ <span class="text-sky-400">SMART</span></h2>
+    </header>
+
+    <!-- Connection Status Bar -->
+    <div class="w-full max-w-md glass-card rounded-[2rem] p-4 mb-8 flex items-center justify-between shadow-xl">
+        <div class="flex items-center gap-3">
+            <div id="status-dot" class="w-3 h-3 rounded-full bg-slate-600 transition-all duration-500"></div>
+            <div class="flex flex-col">
+                <span id="status-text" class="text-xs font-bold text-slate-400">Đang khởi tạo...</span>
+                <span class="text-[8px] uppercase tracking-widest text-slate-500 font-bold">Kết nối ESP32-C3</span>
+            </div>
+        </div>
+        <div class="text-right">
+            <div id="clock" class="text-xs font-mono text-slate-400">00:00:00</div>
+            <div class="text-[8px] uppercase text-slate-600 font-bold">Thời gian thực</div>
+        </div>
+    </div>
+
+    <!-- Control Grid -->
+    <main class="grid grid-cols-1 gap-4 w-full max-w-md">
+        
+        <!-- Đèn Phòng Khách -->
+        <button onclick="sendAction('den_phong_khach')" id="btn-den_phong_khach" class="device-card glass-card p-5 rounded-[2.5rem] flex justify-between items-center border border-white/5">
+            <div class="flex items-center gap-4">
+                <div id="icon-bg-den_phong_khach" class="w-14 h-14 rounded-3xl bg-slate-800/50 flex items-center justify-center text-3xl transition-all duration-500">
+                    <span id="icon-den_phong_khach" class="opacity-30 grayscale transition-all duration-500">💡</span>
+                </div>
+                <div class="text-left">
+                    <p id="label-den_phong_khach" class="text-sm font-bold text-slate-500 transition-colors">Đèn Phòng Khách</p>
+                    <p id="state-text-den_phong_khach" class="text-[10px] font-bold text-slate-600 uppercase tracking-tighter">Đang tắt</p>
+                </div>
+            </div>
+            <div id="ind-den_phong_khach" class="w-1.5 h-10 rounded-full bg-slate-800 transition-all duration-500"></div>
+        </button>
+
+        <!-- Quạt Trần -->
+        <button onclick="sendAction('quat_tran')" id="btn-quat_tran" class="device-card glass-card p-5 rounded-[2.5rem] flex justify-between items-center border border-white/5">
+            <div class="flex items-center gap-4">
+                <div id="icon-bg-quat_tran" class="w-14 h-14 rounded-3xl bg-slate-800/50 flex items-center justify-center text-3xl transition-all duration-500">
+                    <span id="icon-quat_tran" class="opacity-30 grayscale transition-all duration-500">🌀</span>
+                </div>
+                <div class="text-left">
+                    <p id="label-quat_tran" class="text-sm font-bold text-slate-500 transition-colors">Quạt Trần</p>
+                    <p id="state-text-quat_tran" class="text-[10px] font-bold text-slate-600 uppercase tracking-tighter">Đang tắt</p>
+                </div>
+            </div>
+            <div id="ind-quat_tran" class="w-1.5 h-10 rounded-full bg-slate-800 transition-all duration-500"></div>
+        </button>
+
+        <!-- Điều Hòa -->
+        <button onclick="sendAction('dieu_hoa')" id="btn-dieu_hoa" class="device-card glass-card p-5 rounded-[2.5rem] flex justify-between items-center border border-white/5">
+            <div class="flex items-center gap-4">
+                <div id="icon-bg-dieu_hoa" class="w-14 h-14 rounded-3xl bg-slate-800/50 flex items-center justify-center text-3xl transition-all duration-500">
+                    <span id="icon-dieu_hoa" class="opacity-30 grayscale transition-all duration-500">❄️</span>
+                </div>
+                <div class="text-left">
+                    <p id="label-dieu_hoa" class="text-sm font-bold text-slate-500 transition-colors">Điều Hòa</p>
+                    <p id="state-text-dieu_hoa" class="text-[10px] font-bold text-slate-600 uppercase tracking-tighter">Đang tắt</p>
+                </div>
+            </div>
+            <div id="ind-dieu_hoa" class="w-1.5 h-10 rounded-full bg-slate-800 transition-all duration-500"></div>
+        </button>
+
+        <!-- Đèn Sân Vườn -->
+        <button onclick="sendAction('den_san_vuon')" id="btn-den_san_vuon" class="device-card glass-card p-5 rounded-[2.5rem] flex justify-between items-center border border-white/5">
+            <div class="flex items-center gap-4">
+                <div id="icon-bg-den_san_vuon" class="w-14 h-14 rounded-3xl bg-slate-800/50 flex items-center justify-center text-3xl transition-all duration-500">
+                    <span id="icon-den_san_vuon" class="opacity-30 grayscale transition-all duration-500">🌳</span>
+                </div>
+                <div class="text-left">
+                    <p id="label-den_san_vuon" class="text-sm font-bold text-slate-500 transition-colors">Đèn Sân Vườn</p>
+                    <p id="state-text-den_san_vuon" class="text-[10px] font-bold text-slate-600 uppercase tracking-tighter">Đang tắt</p>
+                </div>
+            </div>
+            <div id="ind-den_san_vuon" class="w-1.5 h-10 rounded-full bg-slate-800 transition-all duration-500"></div>
+        </button>
+
+    </main>
+
+    <footer class="mt-auto py-10 text-center">
+        <p class="text-slate-700 text-[9px] font-black uppercase tracking-[0.4em]">
+            WebSocket Connected • Stable v3.5
+        </p>
+    </footer>
+
+    <!-- Firebase Logic -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, onValue, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyB9Z_LepwRX-ujWvi1fuXf-d7mUPLCid0g",
+            databaseURL: "https://esp32-ae6a8-default-rtdb.asia-southeast1.firebasedatabase.app"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        let currentStates = {};
+
+        // Cập nhật đồng hồ
+        setInterval(() => {
+            const now = new Date();
+            document.getElementById('clock').innerText = now.toLocaleTimeString('vi-VN', { hour12: false });
+        }, 1000);
+
+        // Lắng nghe trạng thái thiết bị
+        onValue(ref(db, 'devices'), (snapshot) => {
+            const data = snapshot.val() || {};
+            currentStates = data;
+            Object.keys(data).forEach(id => updateDeviceUI(id, data[id]));
+        });
+
+        // Lắng nghe Heartbeat từ ESP32
+        let heartbeatTimeout;
+        onValue(ref(db, 'status/online'), (snapshot) => {
+            const isOnline = snapshot.val() === true;
+            const dot = document.getElementById('status-dot');
+            const text = document.getElementById('status-text');
+
+            clearTimeout(heartbeatTimeout);
+
+            if (isOnline) {
+                dot.className = "w-3 h-3 rounded-full status-online";
+                text.innerText = "HỆ THỐNG ĐANG CHẠY";
+                text.className = "text-xs font-bold text-green-400 uppercase";
+                
+                // Watchdog: Nếu 35 giây không có tín hiệu mới -> Offline
+                heartbeatTimeout = setTimeout(() => setOfflineUI(dot, text), 35000);
+            } else {
+                setOfflineUI(dot, text);
+            }
+        });
+
+        function setOfflineUI(dot, text) {
+            dot.className = "w-3 h-3 rounded-full status-offline";
+            text.innerText = "ESP32 MẤT KẾT NỐI";
+            text.className = "text-xs font-bold text-red-500 uppercase";
+        }
+
+        window.sendAction = (id) => {
+            const newState = !currentStates[id];
+            updateDeviceUI(id, newState); // Cập nhật giao diện tạm thời (Optimistic UI)
+            update(ref(db, 'devices'), { [id]: newState }).catch(() => {
+                updateDeviceUI(id, !newState); // Hoàn tác nếu lỗi
+            });
+        };
+
+        function updateDeviceUI(id, active) {
+            const btn = document.getElementById(`btn-${id}`);
+            const icon = document.getElementById(`icon-${id}`);
+            const iconBg = document.getElementById(`icon-bg-${id}`);
+            const label = document.getElementById(`label-${id}`);
+            const stateText = document.getElementById(`state-text-${id}`);
+            const ind = document.getElementById(`ind-${id}`);
+
+            if (!btn) return;
+
+            if (active) {
+                btn.classList.add('active-glow');
+                icon.classList.remove('grayscale', 'opacity-30');
+                iconBg.style.backgroundColor = "rgba(14, 165, 233, 0.15)";
+                label.classList.replace('text-slate-500', 'text-white');
+                stateText.innerText = "Đang hoạt động";
+                stateText.classList.replace('text-slate-600', 'text-sky-400');
+                ind.style.backgroundColor = "#0ea5e9";
+                ind.style.boxShadow = "0 0 15px rgba(14, 165, 233, 0.8)";
+            } else {
+                btn.classList.remove('active-glow');
+                icon.classList.add('grayscale', 'opacity-30');
+                iconBg.style.backgroundColor = "rgba(30, 41, 59, 0.5)";
+                label.classList.replace('text-white', 'text-slate-500');
+                stateText.innerText = "Đang tạm dừng";
+                stateText.classList.replace('text-sky-400', 'text-slate-600');
+                ind.style.backgroundColor = "#1e293b";
+                ind.style.boxShadow = "none";
+            }
+        }
+    </script>
+</body>
+</html>
+
+```
